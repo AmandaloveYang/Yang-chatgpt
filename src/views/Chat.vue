@@ -81,15 +81,15 @@ const sendMessage = async () => {
   loading.value = true;
 
   // 添加用户消息
-  const userMessage = {
+  const userMessage: Message = {
     id: Date.now(),
-    role: "user",
+    role: "user" as const,
     content: userInput.value.trim(),
   };
   messages.value.push(userMessage);
 
   try {
-    const response = await request<ChatResponse>({
+    const response = await request({
       url: "/v1/chat/completions",
       method: "post",
       data: {
@@ -103,15 +103,17 @@ const sendMessage = async () => {
       },
     });
 
-    // 添加AI响应
-    if (response.choices && response.choices[0]?.message) {
+    console.log("API响应:", response);
+
+    if (response?.choices?.[0]?.message?.content) {
       const aiMessage = {
         id: Date.now() + 1,
-        role: "assistant",
+        role: "assistant" as const,
         content: response.choices[0].message.content,
       };
       messages.value.push(aiMessage);
-      console.log("当前消息:", messages.value); // 调试输出
+    } else {
+      throw new Error("API 响应格式不正确");
     }
 
     userInput.value = "";
